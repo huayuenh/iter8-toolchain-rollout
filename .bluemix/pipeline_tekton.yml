@@ -33,6 +33,10 @@ inputs:
     service: ${TEKTON_CATALOG_REPO}
     path: utils
   - type: git
+    branch: master
+    service: ${TEKTON_CATALOG_REPO}
+    path: tester
+  - type: git
     branch: main
     service: ${TEKTON_GITSECURE}
     path: gitsecure

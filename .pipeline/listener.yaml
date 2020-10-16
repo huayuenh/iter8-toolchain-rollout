@@ -38,6 +38,9 @@ spec:
     - name: grafana-dashboard-url
     - name: pipeline-debug
       default: "0"
+    - name: artifactory-dockerconfigjson
+      description: dockerconfigjson for pullsecrets
+    - name: apikey
   resourcetemplates:
     - apiVersion: v1
       kind: PersistentVolumeClaim
@@ -50,6 +53,19 @@ spec:
         volumeMode: Filesystem
         accessModes:
           - ReadWriteOnce
+    - apiVersion: v1
+      kind: Secret
+      data:
+        .dockerconfigjson: $(params.artifactory-dockerconfigjson)
+      metadata:
+        name: artifactory-pull-secret
+      type: kubernetes.io/dockerconfigjson
+    - apiVersion: v1
+      kind: ServiceAccount
+      imagePullSecrets:
+        - name: artifactory-pull-secret
+      metadata:
+        name: sa-pullsecret
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
@@ -90,10 +106,13 @@ spec:
             value: $(params.grafana-dashboard-url)
           - name: pipeline-debug
             value: $(params.pipeline-debug)
+          - name: apikey
+            value: $(params.apikey)
         workspaces:
           - name: pipeline-ws
             persistentVolumeClaim:
               claimName: iter8-$(uid)-pvc
+        serviceAccountName: sa-pullsecret
 ---
 apiVersion: tekton.dev/v1beta1
 kind: TriggerBinding
